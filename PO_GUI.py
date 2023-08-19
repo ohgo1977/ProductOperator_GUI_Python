@@ -1,12 +1,12 @@
 #  ------------------------------------------------------------------------
-#  File Name   : PO_GUI
+#  File Name   : PO_GUI.py
 #  Description : Graphical User Interface for Product Operator Formalism of spin-1/2
-#  Tested      : Python 3.8.5, SymPy 1.11.1, NumPy 1.23.3, Tkinter 8.6.9, PO 1.1.0
+#  Tested      : Python 3.8.5, SymPy 1.11.1, NumPy 1.23.3, Tkinter 8.6.9, PO 1.3.0
 #  Developer   : Dr. Kosuke Ohgo
 #  ULR         : https://github.com/ohgo1977/PO_GUI_Python
 #  Version     : 1.0.0
 # 
-#  Please read the manual (PO_GUI_Python_Manual.pdf) for details.
+#  Please read the manual (PO_GUI_Manual.pdf) for details.
 # 
 #  ------------------------------------------------------------------------
 # 

@@ -4,7 +4,7 @@
 #  Tested      : Python 3.8.5, SymPy 1.11.1, NumPy 1.23.3, Tkinter 8.6.9, PO 1.3.0
 #  Developer   : Dr. Kosuke Ohgo
 #  ULR         : https://github.com/ohgo1977/PO_GUI_Python
-#  Version     : 1.0.0
+#  Version     : 1.1.0
 # 
 #  Please read the manual (PO_GUI_Manual.pdf) for details.
 # 
@@ -31,11 +31,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
+# Version 1.1.0
+# Undo, Clear, and Save buttons were added.
 
+# Version Information
+ver_str = 'version 1.1.0'
+print('PO_GUI, ', ver_str)
 
 # Import GUI library
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
+from tkinter.filedialog import asksaveasfile
 
 # Function to create undefined symbols. 
 def check_symbols(val):
@@ -87,6 +95,8 @@ print('Initial Density Operator:')
 print(rho)
 PO.simp = simp
 
+rho_cell = [rho]
+
 # Define Default Parameters as lists
 # Pulse
 FA = ['pi/4', 'pi/2', 'pi*3/4', 'pi', 'b']# Flip Angle
@@ -120,8 +130,11 @@ class CalcGui(object):
     def __init__(self, app=None):
 
         # Window Setting
-        app.title('PO_GUI') # Window Title
-        app.geometry('1150x600') # Window size, W x H
+        app.title('PO_GUI '+ ver_str) # Window Title
+        app.geometry('1150x700+10+10') # Window size and position, W x H + X + Y        
+        app.lift()
+        app.attributes('-topmost', True)
+        app.after_idle(app.attributes, '-topmost', False)
 
         # Window Size
         PS_width = 500
@@ -132,6 +145,8 @@ class CalcGui(object):
         JC_height = 300
         Disp_width = 600
         Disp_height = 500
+        Edit_width = 500
+        Edit_height = 100
 
         padx_v=5
         pady_v=5
@@ -144,6 +159,7 @@ class CalcGui(object):
         CS_font_size = 10
         JC_font_size = 10
         Disp_font_size = 10
+        Edit_font_size = 10
 
         # Switches
         PS_switch = 1
@@ -153,6 +169,7 @@ class CalcGui(object):
             JC_switch = 1
         global Disp_switch
         Disp_switch = 1
+        Edit_switch = 1
 
         ###### Pulse Section Starts #######
         if PS_switch == 1:
@@ -286,7 +303,7 @@ class CalcGui(object):
                 button.grid(row=1, column=x)
                 button.bind('<Button-1>', self.click_CS_button)
 
-        ####### Cheimical Shift Section Section Ends #######
+        ####### Cheimical Shift Section Ends #######
 
         ####### J-coupling Section Starts #######
         if JC_switch == 1:
@@ -339,7 +356,7 @@ class CalcGui(object):
             label = tk.Label(JC_frame, text='Apply JC to', font=('Helvetica', JC_font_size))
             label.grid(row=0, column=0)
 
-            # Button for CS
+            # Button for JC
             for x, num in enumerate(JC_pair):
                 button = tk.Button(JC_frame, text=num, font=('Helvetica', JC_font_size),  width=10, height=3)
                 button.grid(row=1, column=x)
@@ -374,6 +391,28 @@ class CalcGui(object):
 
         ###### Display Section Ends #######
 
+        ####### Edit Section Starts #######
+        if Edit_switch == 1:
+            # LabelFrame for Chemical Shift
+            Edit_label_frame = ttk.LabelFrame(app, text='Edit', width=Edit_width, height=Edit_height)
+            Edit_label_frame.propagate(False) 
+            Edit_label_frame.grid(row=2, column=0, padx=padx_v, pady=pady_v, sticky=tk.NW)
+
+            button = tk.Button(Edit_label_frame, text='Undo', font=('Helvetica', Edit_font_size), width=6, height=3)
+            button.grid(row=0, column=0, sticky='nsew')
+            button.bind('<Button-1>', self.Undo_button)
+
+            button = tk.Button(Edit_label_frame, text='Clear', font=('Helvetica', Edit_font_size), width=6, height=3)
+            button.grid(row=0, column=1, sticky='nsew')
+            button.bind('<Button-1>', self.Clear_button)
+
+            button = tk.Button(Edit_label_frame, text='Save', font=('Helvetica', Edit_font_size), width=6, height=3)
+            button.grid(row=0, column=2, sticky='nsew')
+            button.bind('<Button-1>', self.Save_button)
+            # button.config(relief=tk.RAISED)
+
+        ####### Edit Section Ends #######
+
     ####### Pulse ####### 
     def click_FA_button(self, event):
         check = event.widget['text']
@@ -396,6 +435,7 @@ class CalcGui(object):
             cmd_s = 'rho = rho.pulse_phshift(["' + check + '"], [' + PH_str + '], [' + FA_str + '])'
 
         exec(cmd_s, locals(), globals())
+        rho_cell.append(rho)
         
         CalcGui.update_Disp_text(self)
     ####### Pulse #######
@@ -412,6 +452,7 @@ class CalcGui(object):
         cmd_s = 'rho = rho.cs(["' + check + '"], [' + CS_str + '])'
 
         exec(cmd_s, locals(), globals())
+        rho_cell.append(rho)
 
         CalcGui.update_Disp_text(self)
     ####### Chemical Shift ####### 
@@ -427,22 +468,62 @@ class CalcGui(object):
         check = event.widget['text']
         cmd_s = 'rho = rho.jc(["' + check + '"], [' + JC_str + '])'
         exec(cmd_s, locals(), globals())
+        rho_cell.append(rho)
 
         CalcGui.update_Disp_text(self)
     ####### J-coupling #######
 
-    ####### Utilities #######
+    ####### Display #######
     def update_Disp_text(self):
         if Disp_switch == 1:
             new_logs = '\n' + rho.logs[len(self.prev_logs):]
             self.disp_logs = self.disp_logs + new_logs
-            self.Disp_text.config(state='normal')
-            self.Disp_text.delete('1.0',self.Disp_text.index(tk.END))
-            self.Disp_text.insert('1.0', 'Simplification: ' + simp + '\n' + 'Initial Density Operator: ' + self.disp_logs)
-            self.Disp_text.config(state='disabled')
-            self.Disp_text.see('end')
+            CalcGui.reset_Disp_text(self)
             self.prev_logs = rho.logs
-    ####### Utilities #######
+
+    ####### Display #######
+
+    ####### Edit #######
+    def Undo_button(self, event):
+        if len(rho_cell) > 1:
+            len_tmp = len(rho_cell[-1].logs) - len(rho_cell[-2].logs)
+            self.disp_logs = self.disp_logs[:-len_tmp-1]# Include \n
+            if len(rho_cell) == 2: # Initial condition
+                self.prev_logs = rho_cell[-2].logs
+            else:
+                self.prev_logs = rho_cell[-3].logs
+            exec('rho = rho_cell[-2]', locals(), globals()) # Update rho. exec() should be used.
+            exec('rho_cell = rho_cell[:-1]', locals(), globals()) # Delete the last element of rho_cell. exec() should be used.
+            # ele = rho_cell.pop() # Delete the last element, this line also works.
+            CalcGui.reset_Disp_text(self)
+
+    def Clear_button(self, event):
+            self.prev_logs = rho_cell[0].logs
+            self.disp_logs = str(self.prev_logs) # Initilize self.disp_logs
+            exec('rho = rho_cell[0]', locals(), globals()) # Update rho as globals
+            exec('rho_cell = [rho]', locals(), globals())
+            CalcGui.reset_Disp_text(self)
+
+    def Save_button(self, event):
+        file = filedialog.asksaveasfilename(
+                            filetypes=[("txt file", ".txt")],
+                            defaultextension=".txt",
+                            initialfile="PO_Result.txt")
+        fob=open(file,'w')
+        fob.write('Simplification: ' + simp + '\n' + 'Initial Density Operator: ' + self.disp_logs)
+        fob.close()
+        return "break"# Without this line, Save_button has been sunken
+        
+    ####### Edit #######
+
+    ####### Utility #######
+    def reset_Disp_text(self):
+        self.Disp_text.config(state='normal')
+        self.Disp_text.delete('1.0',self.Disp_text.index(tk.END))
+        self.Disp_text.insert('1.0', 'Simplification: ' + simp + '\n' + 'Initial Density Operator: ' + self.disp_logs)
+        self.Disp_text.config(state='disabled')
+        self.Disp_text.see('end')
+    ####### Utility #######
 
 ####### Main #######
 def main():

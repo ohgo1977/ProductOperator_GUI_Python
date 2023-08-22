@@ -4,7 +4,7 @@
 #  Tested      : Python 3.8.5, SymPy 1.11.1, NumPy 1.23.3, Tkinter 8.6.9, PO 1.3.0
 #  Developer   : Dr. Kosuke Ohgo
 #  ULR         : https://github.com/ohgo1977/PO_GUI_Python
-#  Version     : 1.1.0
+#  Version     : 1.1.1
 # 
 #  Please read the manual (PO_GUI_Manual.pdf) for details.
 # 
@@ -32,11 +32,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Version 1.1.0
+# Version 1.1.1 on 8/22/2023
+# rho was initialize as 0 to get rid out of unkonwn variable warninings.
+#
+# Version 1.1.0 on 8/21/203
 # Undo, Clear, and Save buttons were added.
 
 # Version Information
-ver_str = 'version 1.1.0'
+ver_str = 'version 1.1.1'
 print('PO_GUI, ', ver_str)
 
 # Import GUI library
@@ -90,9 +93,12 @@ from PO import * # Need this line to access Ix, Iy, ... created by PO.create().
 check_symbols(rho_str)
 
 # Initial Density Operator
+rho = 0 # Dummy to get rid of errors
 exec('rho = ' + rho_str, locals(), globals())
 print('Initial Density Operator:')
 print(rho)
+
+# Set the simplification method
 PO.simp = simp
 
 rho_cell = [rho]

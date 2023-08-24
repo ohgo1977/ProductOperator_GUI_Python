@@ -4,7 +4,7 @@
 #  Tested      : Python 3.8.5, SymPy 1.11.1, NumPy 1.23.3, Tkinter 8.6.9, PO 1.3.0
 #  Developer   : Dr. Kosuke Ohgo
 #  ULR         : https://github.com/ohgo1977/PO_GUI_Python
-#  Version     : 1.1.1
+#  Version     : 1.2.0
 # 
 #  Please read the manual (PO_GUI_Manual.pdf) for details.
 # 
@@ -32,21 +32,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+# Version 1.2.0 on 8/23/2023
+#  A default value of rho_str is automatically generated from the values in SpinLabel
+#
 # Version 1.1.1 on 8/22/2023
 # rho was initialize as 0 to get rid out of unkonwn variable warninings.
 #
-# Version 1.1.0 on 8/21/203
+# Version 1.1.0 on 8/21/2023
 # Undo, Clear, and Save buttons were added.
+#
+# Version 1.0.0 on 8/18/2023
 
 # Version Information
-ver_str = 'version 1.1.1'
+ver_str = 'version 1.2.0'
 print('PO_GUI, ', ver_str)
 
 # Import GUI library
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
-from tkinter.filedialog import asksaveasfile
 
 # Function to create undefined symbols. 
 def check_symbols(val):
@@ -80,9 +84,16 @@ val = val.replace(' ','')
 print('Spin Labels: ', val)
 SpinLabel = val.split(',')
 
-rho_str = input('Enter Initial Density Operator (Default: Iz + Sz): ')
+rho_str_ini = ''
+for ii in range(len(SpinLabel)):
+    rho_str_ini = rho_str_ini + SpinLabel[ii] + 'z'
+    if ii < len(SpinLabel) -1:
+        rho_str_ini = rho_str_ini + ' + '
+    elif ii == len(SpinLabel) -1:
+        break
+rho_str = input('Enter Initial Density Operator (Default: ' +  rho_str_ini + '):')
 if len(rho_str) == 0:
-    rho_str = 'Iz + Sz'
+    rho_str = rho_str_ini
 
 # Import Product Operator
 from PO import *
@@ -415,7 +426,6 @@ class CalcGui(object):
             button = tk.Button(Edit_label_frame, text='Save', font=('Helvetica', Edit_font_size), width=6, height=3)
             button.grid(row=0, column=2, sticky='nsew')
             button.bind('<Button-1>', self.Save_button)
-            # button.config(relief=tk.RAISED)
 
         ####### Edit Section Ends #######
 
